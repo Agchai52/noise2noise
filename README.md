@@ -105,7 +105,7 @@ Once you've trained a network, you can run a validation dataset through the netw
 Suppose your training run results were stored under `results/00001-autoencoder-1gpu-L-n2n`.  Here's how to run a set of images through this network:
 
 ```
-python config.py validate --dataset-dir=datasets/kodak --network-snapshot=results/00001-autoencoder-1gpu-L-n2n/network_final.pickle
+python config.py validate --dataset-dir=datasets/test_denoise --network-snapshot=checkpoints/network_final-gaussian-n2n.pickle
 ```
 
 ### Pre-trained networks
