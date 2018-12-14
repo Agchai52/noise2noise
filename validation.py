@@ -49,10 +49,14 @@ class ValidationSet:
         avg_psnr = 0.0
         for idx in range(len(self.images)):
             orig_img = self.images[idx]
+            # Only for test_denoise
+            noisy_sharp_img = orig_img
+            noisy_img, orig_img = np.split(noisy_sharp_img, 2, axis=2)
+            # Only for test_denoise
             w = orig_img.shape[2]
             h = orig_img.shape[1]
 
-            noisy_img = noise_func(orig_img)
+            # noisy_img = noise_func(orig_img)
             pred255 = util.infer_image(net, noisy_img)
             orig255 = util.clip_to_uint8(orig_img)
             assert (pred255.shape[2] == w and pred255.shape[1] == h)
