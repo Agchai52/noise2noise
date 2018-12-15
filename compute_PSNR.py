@@ -45,14 +45,14 @@ for n, item in enumerate(sharp_list):
         img_sharp = img_sharp[:, :, [2, 1, 0]]
         img_deblu = img_deblu[:, :, [2, 1, 0]]
 
-        plt.figure()
-        plt.imshow(img_sharp/255)
-        plt.title('sharp')
-
-        plt.figure()
-        plt.imshow(img_deblu/255)
-        plt.title('denoise')
-        plt.show()
+        #plt.figure()
+        #plt.imshow(img_sharp/255)
+        #plt.title('sharp')
+#
+        #plt.figure()
+        #plt.imshow(img_deblu/255)
+        #plt.title('denoise')
+        #plt.show()
 
         psnr_n = psnr(img_deblu, img_sharp)
         ssim_n = ssim(img_deblu/255, img_sharp/255, gaussian_weights=True, multichannel=True, use_sample_covariance=False, sigma=1.5)
