@@ -18,7 +18,7 @@ import re
 import shutil
 import time
 import traceback
-import typeguard
+#import typeguard
 
 import zipfile
 
@@ -230,9 +230,9 @@ def run_wrapper(submit_config: SubmitConfig) -> None:
 
     checker = None
 
-    if submit_config.use_typeguard:
-        checker = typeguard.TypeChecker("dnnlib")
-        checker.start()
+    #if submit_config.use_typeguard:
+     #   checker = typeguard.TypeChecker("dnnlib")
+      #  checker.start()
 
     # when running locally, redirect stderr to stdout, log stdout to a file, and force flushing
     if is_local:
