@@ -16,7 +16,7 @@ def psnr(img1, img2):
 
 
 deblu_root = './test' #_all_deblurred'
-sharp_root = './datasets/test_single' #_all'
+sharp_root = './datasets/test_denoise' #_all'
 
 deblu_list = os.listdir(deblu_root)
 sharp_list = os.listdir(sharp_root)
