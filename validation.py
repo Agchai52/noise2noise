@@ -26,33 +26,41 @@ class ValidationSet:
         return
 
     def load(self, dataset_dir):
-        import glob
-
-        abs_dirname = os.path.join(submit.get_path_from_template(dataset_dir), '*')
-        fnames = sorted(glob.glob(abs_dirname))
-        if len(fnames) == 0:
-            print ('\nERROR: No files found using the following glob pattern:', abs_dirname, '\n')
-            sys.exit(1)
-
-        images = []
-        for fname in fnames:
-            try:
-                im = PIL.Image.open(fname).convert('RGB')
-                arr = np.array(im, dtype=np.float32)
-                reshaped = arr.transpose([2, 0, 1]) / 255.0 - 0.5
-                images.append(reshaped)
-            except OSError as e:
-                print ('Skipping file', fname, 'due to error: ', e)
-        self.images = images
+        self.test_dir = dataset_dir
+        #import glob
+#
+        #abs_dirname = os.path.join(submit.get_path_from_template(dataset_dir), '*')
+        #fnames = sorted(glob.glob(abs_dirname))
+        #if len(fnames) == 0:
+        #    print ('\nERROR: No files found using the following glob pattern:', abs_dirname, '\n')
+        #    sys.exit(1)
+#
+        #images = []
+        #for fname in fnames:
+        #    try:
+        #        im = PIL.Image.open(fname).convert('RGB')
+        #        arr = np.array(im, dtype=np.float32)
+        #        reshaped = arr.transpose([2, 0, 1]) / 255.0 - 0.5
+        #        images.append(reshaped)
+        #    except OSError as e:
+        #        print ('Skipping file', fname, 'due to error: ', e)
+        #self.images = images
 
     def evaluate(self, net, iteration, noise_func):
+        import glob
+        dataset_dir = self.test_dir
+        abs_dirname = os.path.join(submit.get_path_from_template(dataset_dir), '*')
+        fnames = sorted(glob.glob(abs_dirname))
+
+
         avg_psnr = 0.0
-        for idx in range(len(self.images)):
-            orig_img = self.images[idx]
-            # Only for test_denoise
-            noisy_sharp_img = orig_img
+        idx = 0
+        for fname in fnames:
+            idx += 1
+            im = PIL.Image.open(fname).convert('RGB')
+            arr = np.array(im, dtype=np.float32)
+            noisy_sharp_img = arr.transpose([2, 0, 1]) / 255.0 - 0.5
             noisy_img, orig_img = np.split(noisy_sharp_img, 2, axis=2)
-            # Only for test_denoise
             w = orig_img.shape[2]
             h = orig_img.shape[1]
 
@@ -66,12 +74,24 @@ class ValidationSet:
             cur_psnr = 10.0 * np.log10((255*255)/(s / (w*h*3)))
             avg_psnr += cur_psnr
 
-            util.save_image(self.submit_config, pred255, "img_{0}_val_{1}_pred.png".format(iteration, idx))
+            t = pred255.transpose([1, 2, 0])  # [RGB, H, W] -> [H, W, RGB]
+            if t.dtype in [np.float32, np.float64]:
+                t = util.clip_to_uint8(t)
+            else:
+                assert t.dtype == np.uint8
+            img_name = fname.replace(dataset_dir+'/', '')
+            img_name = 'test_' + img_name
+            print(img_name)
+            if not os.path.exists('test/'):
+                os.makedirs('test/')
+            PIL.Image.fromarray(t, 'RGB').save(os.path.join('test/', img_name))
 
-            if iteration == 0:
-                util.save_image(self.submit_config, orig_img, "img_{0}_val_{1}_orig.png".format(iteration, idx))
-                util.save_image(self.submit_config, noisy_img, "img_{0}_val_{1}_noisy.png".format(iteration, idx))
-        avg_psnr /= len(self.images)
+            #util.save_image(self.submit_config, pred255, "img_{0}_val_{1}_pred.png".format(iteration, idx))
+
+            #if iteration == 0:
+             #   util.save_image(self.submit_config, orig_img, "img_{0}_val_{1}_orig.png".format(iteration, idx))
+              #  util.save_image(self.submit_config, noisy_img, "img_{0}_val_{1}_noisy.png".format(iteration, idx))
+        avg_psnr /= idx
         print ('Average PSNR: %.2f' % autosummary('PSNR_avg_psnr', avg_psnr))
 
 
@@ -94,6 +114,8 @@ def infer_image(network_snapshot: str, image: str, out_image: str):
     net = util.load_snapshot(network_snapshot)
     im = PIL.Image.open(image).convert('RGB')
     arr = np.array(im, dtype=np.float32)
+    noisy_sharp_img = arr
+    arr, sharp_img = np.split(noisy_sharp_img, 2, axis=1)
     reshaped = arr.transpose([2, 0, 1]) / 255.0 - 0.5
     pred255 = util.infer_image(net, reshaped)
     t = pred255.transpose([1, 2, 0])  # [RGB, H, W] -> [H, W, RGB]
